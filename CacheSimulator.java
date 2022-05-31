@@ -3,6 +3,7 @@ public class CacheSimulator {
 
     private int id; 
     private int cacheSize;
+    private int associativity;
     private int blockSize;
 
     private CacheLine[] cache;
@@ -23,27 +24,27 @@ public class CacheSimulator {
     {
         this.id = id;
         this.cacheSize = cacheSize;
+        this.associativity = associativity;
         this.blockSize = blockSize; 
 
-        int blockCount = this.cacheSize / (BYTES_IN_WORD * this.blockSize); // Byte addressable
+        int blockCount = this.cacheSize / (BYTES_IN_WORD * this.blockSize * this.associativity); // Byte addressable
         this.offsetBits = (int)(Math.log(BYTES_IN_WORD * blockSize) / Math.log(2)); 
         this.indexBits = (int)(Math.log(blockCount) / Math.log(2)); 
 
-        CacheLine.setAssociativity(associativity);
         this.cache = new CacheLine[blockCount];
         for (int i = 0; i < blockCount; i++)
-            this.cache[i] = new CacheLine();
+            this.cache[i] = new CacheLine(this.associativity);
 
         this.hits = 0;
         this.checks = 0;
     }
 
-    public void accessMemoryAddress(int address)
+    public void accessMemoryAddress(int address, int lineNumber)
     {
         this.checks++;
         int index = (address >> this.offsetBits) & ((1 << this.indexBits) - 1);
         int tag = address >> (this.offsetBits + this.indexBits);
-        if (this.cache[index].checkForTag(tag))
+        if (this.cache[index].checkForTag(tag, lineNumber))
         {
             this.hits++;
         }
@@ -53,7 +54,7 @@ public class CacheSimulator {
     {
         System.out.println("Cache #" + this.id);
         System.out.print("Cache size: " + this.cacheSize + "B	");
-        System.out.print("Associativity: " + CacheLine.getAssociativity() + "	");
+        System.out.print("Associativity: " + this.associativity + "	");
         System.out.println("Block size: " + this.blockSize);
 
         System.out.print("Hits: " + this.hits + "	");

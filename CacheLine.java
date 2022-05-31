@@ -1,50 +1,31 @@
-import java.util.LinkedList;
-
 public class CacheLine 
 {
-    private static int associativity = 0;
-    private LinkedList<Integer> tagList;
-    private int occupied;
+    private int associativity;
+    private int[] tagList;
+    private int[] LRU;
 
-    public static void setAssociativity(int newAssociativity) { associativity = newAssociativity; }
-    public static int getAssociativity() { return associativity; }
-
-    CacheLine()
+    CacheLine(int associativity)
     {
-        this.tagList = new LinkedList<>();
-        this.occupied = 0;
+        this.associativity = associativity;
+        this.tagList = new int[associativity];
+        this.LRU = new int[associativity];
     }
 
-    public boolean checkForTag(int tag)
+    public boolean checkForTag(int tag, int lineNumber)
     {
-        boolean wasMiss = true;
-        for (int i = 0; i < this.occupied; i++)
+        int lastUsedIndex = 0;
+        for (int i = 0; i < this.associativity; i++)
         {
-            if (this.tagList.get(i) == tag)
+            if (this.tagList[i] == tag)
             {
-                this.tagList.remove(i);
-                this.tagList.add(0, tag);
+                this.LRU[i] = lineNumber;
                 return true; // hit
             }
+            if (this.LRU[i] < this.LRU[lastUsedIndex])
+                lastUsedIndex = i;
         }
-        if (wasMiss)
-        {
-            addTag(tag);
-        }
+        this.tagList[lastUsedIndex] = tag;
+        this.LRU[lastUsedIndex] = lineNumber;
         return false; // miss
-    }
-
-    private void addTag(int tag)
-    {
-        if (this.occupied < associativity)
-        {
-            this.occupied++;
-            this.tagList.add(tag);
-        }
-        else
-        {
-            this.tagList.removeLast();
-            this.tagList.add(0, tag);
-        }
     }
 }

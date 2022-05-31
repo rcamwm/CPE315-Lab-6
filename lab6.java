@@ -11,16 +11,17 @@ import java.io.FileNotFoundException;
 public class lab6 {
     public static void main(String[] args)
     {
-        final boolean DEBUG = true;
+        final boolean DEBUG = false;
         if (DEBUG)
         {
-            String[] filenames = {"mem_stream.1", "mem_stream.2", "testinput"};
-            String filename = filenames[0];
+            String[] filenames = {"mem_stream.1", "mem_stream.2"};
+            String filename = filenames[1];
             runCacheConfigutations(filename);
         }
         else 
         {
-            
+            String filename = args[0];
+            runCacheConfigutations(filename);
         }
     }
 
@@ -31,9 +32,9 @@ public class lab6 {
             new CacheSimulator(1, 2048, 1, 1),
             new CacheSimulator(2, 2048, 1, 2),
             new CacheSimulator(3, 2048, 1, 4),
-            // new CacheSimulator(4, 2048, 2, 1),
-            // new CacheSimulator(5, 2048, 4, 1),
-            // new CacheSimulator(6, 2048, 4, 4),
+            new CacheSimulator(4, 2048, 2, 1),
+            new CacheSimulator(5, 2048, 4, 1),
+            new CacheSimulator(6, 2048, 4, 4),
             new CacheSimulator(7, 4096, 1, 1)
         };
         simulateCache(filename, simulators);
@@ -45,11 +46,13 @@ public class lab6 {
         {
             File source = new File(filename);
             Scanner scan = new Scanner(source);
+            int lineNumber = 0;
             while (scan.hasNextLine())
             {
                 int address = getAddress(scan.nextLine());
                 for (int i = 0; i < simulators.length; i++)
-                    simulators[i].accessMemoryAddress(address);
+                    simulators[i].accessMemoryAddress(address, lineNumber);
+                lineNumber++;
             }
             scan.close();
             for (int i = 0; i < simulators.length; i++)
