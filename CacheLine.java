@@ -1,19 +1,17 @@
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 public class CacheLine 
 {
-    private int associativity;
-    private List<Integer> tagList;
-    private List<Integer> LRU;
+    private static int associativity = 0;
+    private LinkedList<Integer> tagList;
     private int occupied;
 
-    CacheLine(int associativity)
+    public static void setAssociativity(int newAssociativity) { associativity = newAssociativity; }
+    public static int getAssociativity() { return associativity; }
+
+    CacheLine()
     {
-        this.associativity = associativity;
-        this.tagList = new ArrayList<>();
-        this.LRU = new LinkedList<>(); // [0] most recent, [4] last used
+        this.tagList = new LinkedList<>();
         this.occupied = 0;
     }
 
@@ -24,8 +22,8 @@ public class CacheLine
         {
             if (this.tagList.get(i) == tag)
             {
-                this.LRU.remove((Integer)i);
-                this.LRU.add(0, i);
+                this.tagList.remove(i);
+                this.tagList.add(0, tag);
                 return true; // hit
             }
         }
@@ -38,18 +36,15 @@ public class CacheLine
 
     private void addTag(int tag)
     {
-        if (this.occupied < this.associativity)
+        if (this.occupied < associativity)
         {
-            this.LRU.add(this.occupied);
             this.occupied++;
             this.tagList.add(tag);
         }
         else
         {
-            int lastUsedIndex = this.LRU.get(this.associativity - 1);
-            this.tagList.set(lastUsedIndex, tag);
-            this.LRU.remove((Integer)lastUsedIndex);
-            this.LRU.add(0, lastUsedIndex);
+            this.tagList.removeLast();
+            this.tagList.add(0, tag);
         }
     }
 }

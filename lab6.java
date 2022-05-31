@@ -26,18 +26,21 @@ public class lab6 {
 
     private static void runCacheConfigutations(String filename)
     {
-        // runCacheSimulator(filename, 1, 2048, 1, 1);
-        runCacheSimulator(filename, 2, 2048, 1, 2);
-        // runCacheSimulator(filename, 3, 2048, 1, 4);
-        // runCacheSimulator(filename, 4, 2048, 2, 1);
-        // runCacheSimulator(filename, 5, 2048, 4, 1);
-        // runCacheSimulator(filename, 6, 2048, 4, 4);
-        // runCacheSimulator(filename, 7, 4096, 1, 1);
+        CacheSimulator[] simulators = 
+        {
+            new CacheSimulator(1, 2048, 1, 1),
+            new CacheSimulator(2, 2048, 1, 2),
+            new CacheSimulator(3, 2048, 1, 4),
+            // new CacheSimulator(4, 2048, 2, 1),
+            // new CacheSimulator(5, 2048, 4, 1),
+            // new CacheSimulator(6, 2048, 4, 4),
+            new CacheSimulator(7, 4096, 1, 1)
+        };
+        simulateCache(filename, simulators);
     }
 
-    private static void runCacheSimulator(String filename, int num, int cacheSize, int associativity, int blockSize)
+    private static void simulateCache(String filename, CacheSimulator[] simulators)
     {
-        CacheSimulator simulator = new CacheSimulator(cacheSize, associativity, blockSize);
         try
         {
             File source = new File(filename);
@@ -45,10 +48,12 @@ public class lab6 {
             while (scan.hasNextLine())
             {
                 int address = getAddress(scan.nextLine());
-                simulator.accessMemoryAddress(address);
+                for (int i = 0; i < simulators.length; i++)
+                    simulators[i].accessMemoryAddress(address);
             }
             scan.close();
-            simulator.printResults(num);
+            for (int i = 0; i < simulators.length; i++)
+                simulators[i].printResults();
         }
         catch (FileNotFoundException exception)
         {

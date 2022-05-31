@@ -1,8 +1,10 @@
 public class CacheSimulator {
+    private final static int BYTES_IN_WORD = 4;
+
+    private int id; 
     private int cacheSize;
-    private int associativity;
     private int blockSize;
-    private int blockCount;
+
     private CacheLine[] cache;
 
     private int offsetBits;
@@ -12,38 +14,34 @@ public class CacheSimulator {
     private int checks;
 
     /***
-     * 
+     * @param id cache number to print
      * @param cacheSize total cache size in bits
-     * @param associativity the number of sets per index
-     * @param blockSize block size in words (= 2^m, m is offset bits)
+     * @param associativity number of sets per index
+     * @param blockSize block size in words
      */
-    CacheSimulator(int cacheSize, int associativity, int blockSize)
+    CacheSimulator(int id, int cacheSize, int associativity, int blockSize)
     {
+        this.id = id;
         this.cacheSize = cacheSize;
-        this.associativity = associativity;
         this.blockSize = blockSize; 
-        this.blockCount = this.cacheSize / this.blockSize; // = 2^n
 
-        this.offsetBits = (int)(Math.log(blockSize) / Math.log(2)); // = m
-        this.indexBits = (int)(Math.log(blockCount) / Math.log(2)); // = n
+        int blockCount = this.cacheSize / (BYTES_IN_WORD * this.blockSize); // Byte addressable
+        this.offsetBits = (int)(Math.log(BYTES_IN_WORD * blockSize) / Math.log(2)); 
+        this.indexBits = (int)(Math.log(blockCount) / Math.log(2)); 
 
-        this.cache = new CacheLine[this.blockCount];
-        for (int i = 0; i < this.blockCount; i++)
-            this.cache[i] = new CacheLine(this.associativity);
+        CacheLine.setAssociativity(associativity);
+        this.cache = new CacheLine[blockCount];
+        for (int i = 0; i < blockCount; i++)
+            this.cache[i] = new CacheLine();
 
         this.hits = 0;
         this.checks = 0;
     }
 
-    // 1fffff58 = 111111111111111111 11101011000 || 111111111111111111 1110101100 0
-    // 1fffff56 = 111111111111111111 11101010110 || 111111111111111111 1110101011 0
-    // 1fffff57 = 111111111111111111 11101010111 || 111111111111111111 1110101011 1
-    // 1fffff59 = 111111111111111111 11101011001 || 111111111111111111 1110101100 1
     public void accessMemoryAddress(int address)
     {
         this.checks++;
-
-        int index = (address >> this.offsetBits) % this.blockCount;
+        int index = (address >> this.offsetBits) & ((1 << this.indexBits) - 1);
         int tag = address >> (this.offsetBits + this.indexBits);
         if (this.cache[index].checkForTag(tag))
         {
@@ -53,8 +51,9 @@ public class CacheSimulator {
 
     public void printResults()
     {
+        System.out.println("Cache #" + this.id);
         System.out.print("Cache size: " + this.cacheSize + "B	");
-        System.out.print("Associativity: " + this.associativity + "	");
+        System.out.print("Associativity: " + CacheLine.getAssociativity() + "	");
         System.out.println("Block size: " + this.blockSize);
 
         System.out.print("Hits: " + this.hits + "	");
@@ -62,11 +61,5 @@ public class CacheSimulator {
         System.out.println(String.format("Hit Rate: %.2f", hitRate * 100) + "% ");
 
         System.out.println("---------------------------");
-    }
-
-    public void printResults(int cacheNumber)
-    {
-        System.out.println("Cache #" + cacheNumber);
-        printResults();
     }
 }
